@@ -15,7 +15,6 @@
 %mend lowercase;
 
 # 변수명 대문자화
-
 %macro uppercase(data);
   %let tmp=%sysfunc(open(&data));
   %let num=%sysfunc(attrn(&tmp,nvars));
@@ -31,3 +30,26 @@
   run;
 %mend uppercase;
     
+# 변수 prefix 수정하기
+%macro startswith(datset,outfile,prefix_before,prefix_after);
+  %let pre=&prefix_before;
+  %let after=&prefix_after;
+  data MACRO_TMP;
+  set &dataset;
+  run;
+
+  data _NULL_;
+    %let prefix_length = &length(&prefix_before);
+    call execute('data &outfile; set MACRO_TMP; rename');
+
+    do until(fend);
+      set sashelp.volumn end='fend';
+      where libname='WORK' and memname='MACRO_TMP' and NAME like "&pre%";
+      call execute(cats(name, "=&after", substr(NAME,&prefix_length+1)));
+    end;
+    call exeucte('; run;')
+  stop;
+  run;
+%mend startswith;
+
+%startswith(data, a_, b_,  ) # 마지막칸은 빈칸으로 놔두면 prefix 없애
