@@ -1,0 +1,44 @@
+/* 임의의 결측값 데이터 생성 */
+data class;
+    set sashelp.class;
+run;
+
+/* 각 열에 임의의 결측값 추가 */
+data class_with_missing;
+    set class;
+    
+    /* 임의의 결측값 생성 */
+    if ranuni(0) < 0.1 then age = .;
+    if ranuni(1) < 0.1 then height = .;
+    if ranuni(2) < 0.1 then weight = .;
+    if ranuni(3) < 0.1 then sex = ' ';
+
+    /* 임의의 문자열로 결측값 생성 */
+    if ranuni(4) < 0.1 then name = ' ';
+run;
+
+/* 결과 확인 */
+proc print data=class_with_missing;
+run;
+
+
+%macro replace_missing(dataset);
+    data new_data;
+        set &dataset.;
+        array ar[*] _numeric_;
+        /*숫자데이터는 0으로 대체*/
+        do i=1 to dim(ar);
+            if ar[i]=. then ar[i]=0;
+        end;
+        /*문자데이터는 abc로 대체*/
+        array ar_char[*] _character_;
+        
+        do i=1 to dim(ar_char);
+            if ar_char[i]=' ' then ar_char[i]="abc";
+        end;
+
+        drop i;
+    run;
+%mend;
+
+%replace_missing(class_with_missing);
